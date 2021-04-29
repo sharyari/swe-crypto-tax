@@ -37,6 +37,18 @@ class Coin(float):
         #+ o*o.average_cost
         return self.__class__(res, self.name, euro=total_cost)
 
+    def to_json(self):
+        data = {
+            'abb': self.name,
+            'amount': self,
+            'average_cost': self.average_cost
+        }
+        return data
 
+    def from_json(self, data):
+        self.name = data['abb'],
+        self.amount = data['amount']
+        self.average_cost = data['average_cost']
+                
     def __repr__(self):
         return "{:.4f} {}".format(self, self.name)

@@ -3,10 +3,8 @@ import datetime
 import sys
 from copy import deepcopy
 
-from kraken import parse_kraken_csv
-from wallet import Wallet
-
-
+from cryptotax.kraken import parse_kraken_csv
+from cryptotax.wallet import Wallet
 
 
 if __name__ == '__main__':

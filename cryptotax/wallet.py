@@ -1,5 +1,5 @@
 import tabulate
-from coin import Coin, EUR
+from cryptotax.coin import Coin, EUR
 
 def is_small(v):
     return (v > -0.0001 and v <0.0001)

@@ -1,6 +1,19 @@
-from transaction import Transaction
+from cryptotax.transaction import Transaction
 from datetime import datetime
-from coin import Coin, EUR
+from cryptotax.coin import Coin, EUR
+from flask import Blueprint, request
+from cryptotax.cfg import wallet
+from json import dumps
+
+kraken_csv = Blueprint('kraken_csv', __name__, template_folder='templates')
+
+@kraken_csv.route('/input/kraken', methods = ['POST'])
+def kraken_r():
+    in_file = request.files['data']
+    data = in_file.read().decode().split("\n")
+    trs = parse_kraken_file(data)
+    return dumps([tr.to_json() for tr in trs])
+    
 
 class KrakenTransaction(Transaction):
     # mostly one to one, but at least euro appeared in two ways for me
@@ -60,13 +73,19 @@ class KrakenTransaction(Transaction):
 def parse_kraken_line(line):
     # Remove \n, \r and unneeded quotes
     info = line.replace('"', '').strip().split(',')
+    if len(info) > 12:
+        return KrakenTransaction(info)
 
-    return KrakenTransaction(info)
+def parse_kraken_file(lines):
+    for line in lines:
+        # Skip the first line if it exists
+        if line.startswith('"txid"'):
+            continue
+        tr = parse_kraken_line(line)
+        if tr:
+            yield tr
 
 def parse_kraken_csv(path):
     with open(path, "r") as fp:
-        for line in fp.readlines():
-            # Skip the first line if it exists
-            if line.startswith('"txid"'):
-                continue
-            yield parse_kraken_line(line)
+        lines = fp.readlines()
+        return parse_kraken_file(lines)
