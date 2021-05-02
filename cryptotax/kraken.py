@@ -1,6 +1,7 @@
 from cryptotax.transaction import Transaction
 from datetime import datetime
-from cryptotax.coin import Coin, EUR
+from cryptotax.exchange_rate import ExchangeRate
+from cryptotax.coin import Coin, EUR, SEK
 from flask import Blueprint, request
 from cryptotax.cfg import wallet
 from json import dumps
@@ -43,7 +44,7 @@ class KrakenTransaction(Transaction):
         print("UNKNOWN CURRENCY PAIR: %s" % pair)
         exit(-1)
 
-    def __init__(self, info):
+    def __init__(self, info, rates):
         txid = info[0]
         ordertxid = info[1]
         pair = info[2]
@@ -51,37 +52,40 @@ class KrakenTransaction(Transaction):
         t = info[4]
         ordert = info[5]
         price = info[6]
-        cost = info[7]
-        fee = info[8]
-        vol = info[9]
+        cost = float(info[7])
+        fee = float(info[8])
+        vol = float(info[9])
         margin = info[10]
         misc = info[11]
         ledgers = info[12]
 
         time =  datetime.strptime(time, '%Y-%m-%d %H:%M:%S.%f')
         c1_name, c2_name = self.get_trade_currencies(pair)  # name of the cryptos, c2 == eur
-        coin = Coin(float(vol), c1_name, euro=float(cost)) # total volume of crypto
+        fiat_cost = rates.to_sek(time, cost)
+        coin = Coin(vol, c1_name, fiat_cost=fiat_cost) # total volume of crypto
 #        price = Coin(float(price), EUR) # price of 1 crypto in euro 
-        cost = Coin(float(cost), EUR) # total cost of vol crypto in euor
-        fee = Coin(float(fee), EUR) # total transaction fee in euro
+        cost = Coin(fiat_cost, SEK) # total cost of vol crypto in euor
+        fee = Coin(rates.to_sek(time, fee), SEK) # total transaction fee in euro
         if t == 'buy':
             super().__init__(time, fee, coin, cost)
         else:
             super().__init__(time, fee, cost, coin)
 
 
-def parse_kraken_line(line):
+def parse_kraken_line(line, rates):
     # Remove \n, \r and unneeded quotes
     info = line.replace('"', '').strip().split(',')
     if len(info) > 12:
-        return KrakenTransaction(info)
+        return KrakenTransaction(info, rates)
 
 def parse_kraken_file(lines):
+    rates = ExchangeRate(EUR, SEK)
+
     for line in lines:
         # Skip the first line if it exists
         if line.startswith('"txid"'):
             continue
-        tr = parse_kraken_line(line)
+        tr = parse_kraken_line(line, rates)
         if tr:
             yield tr
 
