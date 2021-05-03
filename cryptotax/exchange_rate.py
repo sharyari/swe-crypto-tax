@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-EUROSEK_FILE = "EuroSek.csv"
+EUROSEK_FILE = "EURSEK.csv"
 
 
 def read_csv(filename):
