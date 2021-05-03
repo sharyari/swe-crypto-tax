@@ -1,91 +1,43 @@
 import tabulate
-from cryptotax.coin import Coin, EUR, SEK
+from cryptotax.coin import Coin
+from cryptotax.balance import Balance
 from cryptotax.exchange_rate import ExchangeRate
 
 def is_small(v):
     return (v > -0.0001 and v <0.0001)
 
 class Wallet():
-    def __init__(self):
+    def __init__(self, fiscal_year, rates, tax_den):
+        self.tax_den = tax_den
         self.balances = {}
-        self.transactions = []
-        self.earnings = {}
+        self.fiscal_year = fiscal_year
+        self.rates = rates
         self.losses = {}
-        self.rates = ExchangeRate(EUR, SEK)
-        self.fees = Coin(0, EUR)
-        pass
-
-    def add(self, c):
-        in_balance = self.balances.get(c.name, Coin(0, c.name))
-        self.balances[c.name] = c + in_balance
-
-    def sub(self, c):
-        in_balance = self.balances.get(c.name, Coin(0, c.name))
-        self.balances[c.name] = in_balance - c
-
-    def get_fees(time_from=None, time_to=None):
-        # todo: add filtering on time
-        total_fees = sum([tr.fee for tr in transactions])
-        return total_fees
-
-    def calculate_tax(self, dt, sold):
-        if sold.name == SEK:
-            #not a taxable event
-            return
-        bought = self.balances.get(sold.name)
-        bought_for = sold.to_euro_at_price(bought.average_cost)
-        sold_for = sold.cost()
-        earnings = sold_for-bought_for
-        cost_in_sek = bought_for
-
-        if earnings > 0:
-            # if it's a win, pay 30% in taxes
-            prev_earnings = self.earnings.get(sold.name, [])
-            prev_earnings.append((sold, cost_in_sek))
-            self.earnings[sold.name] = prev_earnings
-        else:
-            # if it's a loss, we redact 70% of it from our taxes
-            prev_losses = self.losses.get(sold.name, [])
-            prev_losses.append((sold,cost_in_sek))
-            self.losses[sold.name] = prev_losses
-
-        return
-
-    def aggregate_taxes(self, convert='SEK'):
-        all_coins = set.union(set(self.earnings.keys()), set(self.losses.keys()))
-        for c in all_coins:
-            earnings = self.earnings.get(c, [])
-            losses = self.losses.get(c, [])
-            total_c = Coin(0, c)
-            total_sek = 0
-
-            for coin, sek in earnings:
-                total_c = total_c + coin
-                total_sek = total_sek + sek
-            if total_c > 0:
-                sold_for = (total_c.average_cost)*total_c
-                yield float(total_c), c, sold_for, total_sek, 0, sold_for - total_sek
-            total_sek = 0
-            total_c = Coin(0, c)
-            for coin, sek in losses:
-                total_c = total_c + coin
-                total_sek = total_sek + sek
-            if total_c > 0:
-                sold_for = (total_c.average_cost)*total_c
-                yield float(total_c), c, sold_for, total_sek, total_sek - sold_for, 0
-
 
     def transact(self, tr):
-        self.transactions.append(tr)
-        self.calculate_tax(tr.time, tr.sell)
-        self.add(tr.buy)
-        self.sub(tr.sell)
-        
+#        self.transactions.append(tr)
+        buy_den = tr.buy.den
+        sell_den = tr.sell.den
+        b1 = self.balances.get(buy_den, Balance(Coin(buy_den, 0), self.fiscal_year, self.rates, self.tax_den))
+        b2 = self.balances.get(sell_den, Balance(Coin(sell_den, 0), self.fiscal_year, self.rates, self.tax_den))
+        self.balances[buy_den] = b1.buy(tr.buy, tr.sell, tr.time)
+        self.balances[sell_den] = b2.sell(tr.sell, tr.buy, tr.time)
 
     def __repr__(self):
-        # don't show miniscule balances
-        r_balances = dict([(k,v) for (k,v) in self.balances.items() if not is_small(v)])
-        names = r_balances.keys()
-        coins = r_balances.values()
-        averages = [c.average_cost for c in coins]
-        return str(tabulate.tabulate([names, coins, averages]))
+        dens = [b.coin.den for b in self.balances.values() if not is_small(b.coin.amount)]
+        amounts = ["{:.4f}".format(b.coin.amount) for b in self.balances.values() if not is_small(b.coin.amount)]
+        return tabulate.tabulate([dens, amounts])
+
+    def get_taxes(self):
+        total_earn = 0
+        total_loss = 0
+        for b in self.balances.values():
+            earnings, losses = b.aggregate_taxes()
+            total_earn = total_earn + earnings.diff()
+            total_loss = total_loss + losses.diff()
+            if not is_small(earnings.diff()):
+                yield earnings.k4_line()
+            if not is_small(losses.diff()):
+                yield losses.k4_line()
+        print("Total earnings: {}".format(total_earn))
+        print("Total losses: {}".format(total_loss))
