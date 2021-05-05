@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--tax_currency', dest='tax_currency', default='SEK', help='Currency used for taxing, only SEK atm')
     parser.add_argument('--fiscal_year', dest='fiscal_year', default=2020, type=int, help='The fiscal year. Max 2020 (2021 when exchange rates available)')
     parser.add_argument('--num_lines', dest='N', type=int, required=False, default=None, help='Number of lines to parse (debugging)')
+    parser.add_argument('--csv_output', dest='csv_output', default=False, help='Create a csv with the result')
     args = parser.parse_args()
 
     rates = ExchangeRate('EUR', args.tax_currency)
@@ -28,8 +29,10 @@ if __name__ == '__main__':
     for tr in trs[:N]:
         wallet.transact(tr)
 
+    print("End state of wallet. Negative fiat should be expected. Negative crypto indicates incomplete data or bug")
     print(wallet)
-    all_rows = list(wallet.get_taxes())
-    k4 = [["antal", "beteckning", "försäljningspris", "omkostnadsbelopp", "förlust", "vinst"]]
-    k4.extend(all_rows)
-    print(tabulate.tabulate(k4))
+    
+    if not args.csv_output:
+        wallet.print_k4()
+    else:
+        wallet.print_k4_to_file(args.csv_output)

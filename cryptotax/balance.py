@@ -13,7 +13,7 @@ class Balance():
     def buy(self, bought, cost, dt):
         total_before = self.coin.amount*self.average_cost
         bought_cost = cost.amount
-        total_after = total_before + self.rates.to_sek(dt, cost.amount)
+        total_after = total_before + self.rates.convert(dt, cost.amount)
         self.coin = self.coin + bought
         self.average_cost = total_after/self.coin.amount
         return self
@@ -24,10 +24,10 @@ class Balance():
             return self
         if dt.year != self.fiscal_year:
             return self
-        sell_cost_in_sek = self.rates.to_sek(dt, cost.amount)
-        buy_cost_in_sek = self.average_cost*sold.amount
-        tax_event = TaxEvent(sold, buy_cost_in_sek, sell_cost_in_sek)
-        if sell_cost_in_sek > buy_cost_in_sek:
+        sell_cost_in_tax_den = self.rates.convert(dt, cost.amount)
+        buy_cost_in_tax_den = self.average_cost*sold.amount
+        tax_event = TaxEvent(sold, buy_cost_in_tax_den, sell_cost_in_tax_den)
+        if sell_cost_in_tax_den > buy_cost_in_tax_den:
             self.earnings.append(tax_event)
         else:
             self.losses.append(tax_event)

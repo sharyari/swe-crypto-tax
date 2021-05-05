@@ -20,9 +20,6 @@ class TaxEvent():
     def k4_line(self):
         if self.diff() > 0:
             earnings = self.diff()
-            if self.total_bought < earnings*0.2:
-                print("Using schablonmodellen for coin {}".format(self.den))
-                self.total_bought = earnings*0.2
             return [self.amount, self.den, self.total_sold, self.total_bought, 0, earnings]
         else:
             return [self.amount, self.den, self.total_sold, self.total_bought, -self.diff(), 0]

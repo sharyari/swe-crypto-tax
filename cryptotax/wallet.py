@@ -6,6 +6,12 @@ from cryptotax.exchange_rate import ExchangeRate
 def is_small(v):
     return (v > -0.0001 and v <0.0001)
 
+def maybe_float_to_str(v, p=4):
+    if isinstance(v, float):
+        return ("{:.%sf}" % p).format(v)
+    else:
+        return v
+
 class Wallet():
     def __init__(self, fiscal_year, rates, tax_den):
         self.tax_den = tax_den
@@ -41,3 +47,20 @@ class Wallet():
                 yield losses.k4_line()
         print("Total earnings: {}".format(total_earn))
         print("Total losses: {}".format(total_loss))
+
+
+    def print_k4(self, precision=4):
+        all_rows = list(self.get_taxes())
+        k4 = [["antal", "beteckning", "försäljningspris", "omkostnadsbelopp", "förlust", "vinst"]]
+        for row in all_rows:
+            str_row = [maybe_float_to_str(v, precision) for v in row]
+            k4.append(str_row)
+        print(tabulate.tabulate(k4))
+
+    def print_k4_to_file(self, filename):
+        with open(filename, "w+") as fp:
+            k4 = ["antal", "beteckning", "försäljningspris", "omkostnadsbelopp", "förlust", "vinst"]
+            fp.write(",".join(k4))
+            all_rows = list(self.get_taxes())
+            for row in all_rows:
+                fp.write(",".join(row))
