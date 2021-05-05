@@ -5,7 +5,7 @@ timeformat = "%Y-%m-%d %H:%M:%S.%f"
 
 
 class Transaction():
-    def __init__(self, time, buy, sell):
+    def __init__(self, time, buy : Coin, sell : Coin):
         self.time = time
         self.buy = buy
         self.sell = sell

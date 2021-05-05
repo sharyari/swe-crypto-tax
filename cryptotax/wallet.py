@@ -10,11 +10,11 @@ def is_small(v):
         print(type(v.amount))
         return (v.amount > -0.0001) and (v.amount <0.0001)
 
-def maybe_float_to_str(v, p=4):
+def to_str_w_float_precision(v, p=4):
     if isinstance(v, float):
         return ("{:.%sf}" % p).format(v)
     else:
-        return v
+        return str(v)
 
 class Wallet():
     def __init__(self, fiscal_year, rates, tax_den):
@@ -53,18 +53,17 @@ class Wallet():
         print("Total losses: {}".format(total_loss))
 
 
-    def print_k4(self, precision=4):
+    def print_k4(self, filename=None, precision=4):
         all_rows = list(self.get_taxes())
         k4 = [["antal", "beteckning", "försäljningspris", "omkostnadsbelopp", "förlust", "vinst"]]
         for row in all_rows:
-            str_row = [maybe_float_to_str(v, precision) for v in row]
+            str_row = [to_str_w_float_precision(v, precision) for v in row]
             k4.append(str_row)
-        print(tabulate.tabulate(k4))
-
-    def print_k4_to_file(self, filename):
-        with open(filename, "w+") as fp:
-            k4 = ["antal", "beteckning", "försäljningspris", "omkostnadsbelopp", "förlust", "vinst"]
-            fp.write(",".join(k4))
-            all_rows = list(self.get_taxes())
-            for row in all_rows:
-                fp.write(",".join(row))
+        
+        if not filename:
+            print(tabulate.tabulate(k4))
+        else:
+            with open(filename, "w+") as fp:
+                for row in k4:
+                    fp.write(",".join(row)+"\n")
+            

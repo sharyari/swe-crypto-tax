@@ -1,9 +1,23 @@
+class Currency():
+    def __init__(self, long_name, denominator, fiat=False):
+        self.name = long_name
+        self.den = denominator
+        # To use when the value is small, e.g. mBTC for 1/1000 BTC
+        self.milliden = "m"+denominator
+        self.is_fiat = fiat
+
+    def __repr__(self):
+        return self.den
+
 class Coin():
     ###
     # A general coin, it has a name and a value
     ###
-    def __init__(self, den, amount):
+    def __init__(self, den : Currency, amount : float):
         if type(amount) != float:
+            raise Exception
+        if not isinstance(den, Currency):
+            print(type(den))
             raise Exception
         self.den = den
         self.amount = amount 
@@ -55,18 +69,9 @@ class Coin():
         return "{:.4f} {}".format(self.amount, self.den)
 
 
-class Currency():
-    def __init__(self, long_name, denominator):
-        self.name = long_name
-        self.den = denominator
-        # To use when the value is small, e.g. mBTC for 1/1000 BTC
-        self.milliden = "m"+denominator
 
-    def __repr__(self):
-        return self.den
-
-SEK = Currency("Swedish crowns", "SEK")
-EUR = Currency("Euro", "EUR")
+SEK = Currency("Swedish crowns", "SEK", fiat=True)
+EUR = Currency("Euro", "EUR", fiat=True)
 USD = Currency("US dollars", "USD")
 BTC = Currency("Bitcoin", "BTC")
 ETH = Currency("Ethereum", "ETH")

@@ -7,7 +7,7 @@ class TaxEvent():
             raise Exception
 
         self.den = coin.den
-        self.amount = coin.amount
+        self.coin = coin
         self.total_bought = total_bought
         self.total_sold = total_sold
 
@@ -20,12 +20,19 @@ class TaxEvent():
     def __add__(self, o):
         self.total_bought = self.total_bought + o.total_bought
         self.total_sold = self.total_sold + o.total_sold
-        self.amount = self.amount + o.amount
+        self.coin = self.coin + o.coin
         return self
 
     def k4_line(self):
+        if self.coin.amount < 0.99:
+            amount = self.coin.amount * 1000
+            den = self.coin.den.milliden
+        else:
+            amount = self.coin.amount
+            den = self.coin.den.den
+
         if self.diff() > 0:
             earnings = self.diff()
-            return [self.amount, self.den, self.total_sold, self.total_bought, 0, earnings]
+            return [amount, den, self.total_sold, self.total_bought, 0, earnings]
         else:
-            return [self.amount, self.den, self.total_sold, self.total_bought, self.diff(), 0]
+            return [amount, den, self.total_sold, self.total_bought, self.diff(), 0]

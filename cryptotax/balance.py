@@ -20,7 +20,8 @@ class Balance():
         
     def sell(self, sold, cost, dt):
         self.coin = self.coin-sold
-        if sold.den == 'EUR':
+        if sold.den.is_fiat:
+            # selling fiat => buying crypto which is not a tax event
             return self
         if dt.year != self.fiscal_year:
             return self
