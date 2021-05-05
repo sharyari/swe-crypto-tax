@@ -4,7 +4,11 @@ from cryptotax.balance import Balance
 from cryptotax.exchange_rate import ExchangeRate
 
 def is_small(v):
-    return (v > -0.0001 and v <0.0001)
+    if isinstance(v, float):
+        return (v > -0.0001 and v <0.0001)
+    else:
+        print(type(v.amount))
+        return (v.amount > -0.0001) and (v.amount <0.0001)
 
 def maybe_float_to_str(v, p=4):
     if isinstance(v, float):
@@ -24,8 +28,8 @@ class Wallet():
 #        self.transactions.append(tr)
         buy_den = tr.buy.den
         sell_den = tr.sell.den
-        b1 = self.balances.get(buy_den, Balance(Coin(buy_den, 0), self.fiscal_year, self.rates, self.tax_den))
-        b2 = self.balances.get(sell_den, Balance(Coin(sell_den, 0), self.fiscal_year, self.rates, self.tax_den))
+        b1 = self.balances.get(buy_den, Balance(Coin(buy_den, 0.0), self.fiscal_year, self.rates, self.tax_den))
+        b2 = self.balances.get(sell_den, Balance(Coin(sell_den, 0.0), self.fiscal_year, self.rates, self.tax_den))
         self.balances[buy_den] = b1.buy(tr.buy, tr.sell, tr.time)
         self.balances[sell_den] = b2.sell(tr.sell, tr.buy, tr.time)
 
@@ -35,8 +39,8 @@ class Wallet():
         return tabulate.tabulate([dens, amounts])
 
     def get_taxes(self):
-        total_earn = 0
-        total_loss = 0
+        total_earn = 0.0
+        total_loss = 0.0
         for b in self.balances.values():
             earnings, losses = b.aggregate_taxes()
             total_earn = total_earn + earnings.diff()

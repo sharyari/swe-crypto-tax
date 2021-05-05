@@ -24,9 +24,9 @@ class Balance():
             return self
         if dt.year != self.fiscal_year:
             return self
-        sell_cost_in_tax_den = self.rates.convert(dt, cost.amount)
-        buy_cost_in_tax_den = self.average_cost*sold.amount
-        tax_event = TaxEvent(sold, buy_cost_in_tax_den, sell_cost_in_tax_den)
+        sell_cost_in_tax_den = Coin(self.tax_den, self.rates.convert(dt, cost.amount))
+        buy_cost_in_tax_den = Coin(self.tax_den, self.average_cost*sold.amount)
+        tax_event = TaxEvent(sold, buy_cost_in_tax_den.amount, sell_cost_in_tax_den.amount)
         if sell_cost_in_tax_den > buy_cost_in_tax_den:
             self.earnings.append(tax_event)
         else:
@@ -36,7 +36,7 @@ class Balance():
 
     def _aggregate_taxes(self, taxes):
         if len(taxes) == 0:
-            return TaxEvent(Coin(self.coin.den, 0), 0, 0)
+            return TaxEvent(Coin(self.coin.den, 0.0), 0.0, 0.0)
         elif len(taxes) == 1:
             return taxes[0]
         else:

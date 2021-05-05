@@ -3,6 +3,8 @@ class Coin():
     # A general coin, it has a name and a value
     ###
     def __init__(self, den, amount):
+        if type(amount) != float:
+            raise Exception
         self.den = den
         self.amount = amount 
 
@@ -20,6 +22,34 @@ class Coin():
             return self
         else:
             return self.__add__(other)
+
+    def __eq__(self, other):
+        if self.den != other.den:
+            print("Comparison between different currencies not supported!")
+            exit(-1)
+
+        return (self.amount == other.amount)
+
+    def __ne__(self, other):
+        if self.den != other.den:
+            print("Comparison between different currencies not supported!")
+            exit(-1)
+
+        return not (self == other)
+
+    def __lt__(self, other):
+        if self.den != other.den:
+            print("Comparison between different currencies not supported!")
+            exit(-1)
+
+        return (self.amount < other.amount)
+
+    def __gt__(self, other):
+        if self.den != other.den:
+            print("Comparison between different currencies not supported!")
+            exit(-1)
+
+        return (self.amount > other.amount)
 
     def __repr__(self):
         return "{:.4f} {}".format(self.amount, self.den)
