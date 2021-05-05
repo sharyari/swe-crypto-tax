@@ -2,35 +2,40 @@ from cryptotax.transaction import Transaction
 from datetime import datetime
 from cryptotax.exchange_rate import ExchangeRate
 from cryptotax.coin import Coin
+from cryptotax import coin
+
+# This maps denominations used by kraken to an internal denomination (offical)
+kraken_currencies = {
+    'XXBT' : coin.BTC,
+    'BTC': coin.BTC,
+    'XTZ': coin.TZ,
+    'XXRP': coin.XRP,
+    'XZEC': coin.ZEC,
+    'EOS': coin.EOS,
+    'XETC': coin.ETC,
+    'LINK': coin.LINK,
+    'XXLM': coin.XLM,
+    'OXT': coin.OXT,
+    'KAVA': coin.KAVA,
+    'XMLN': coin.MLN,
+    'NANO': coin.NANO,
+    'XDG': coin.XDG,
+    'XETH': coin.ETH,
+    'EUR': coin.EUR,
+    'ZEUR': coin.EUR}
 
 
 class KrakenTransaction(Transaction):
     # mostly one to one, but at least euro appeared in two ways for me
     # and I can't find a definition for this.
-    currencies = {
-     'XXBT' : 'XBT',
-     'XTZ': 'TZ',
-     'XXRP': 'XRP',
-     'XZEC': 'ZEC',
-     'EOS': 'EOS',
-     'XETC': 'ETC',
-     'LINK': 'LINK',
-     'XXLM': 'XLM',
-     'OXT': 'OXT',
-     'KAVA': 'KAVA',
-     'XMLN': 'MLN',
-     'NANO': 'NANO',
-     'XDG': 'DOGE',
-     'XETH': 'ETH',
-     'EUR': 'EUR',
-     'ZEUR': 'EUR'}
+
 
     def get_trade_currencies(self, pair):
         # the second currency is assumed to be EURO
         for i in range(3, len(pair)-2):
-            if pair[:i] in self.currencies and pair[i:] in self.currencies:
-                fr = self.currencies.get(pair[:i])
-                to = self.currencies.get(pair[i:])
+            if pair[:i] in kraken_currencies and pair[i:] in kraken_currencies:
+                fr = kraken_currencies.get(pair[:i])
+                to = kraken_currencies.get(pair[i:])
                 return fr, to  # always EUR in my data
         print("UNKNOWN CURRENCY PAIR: %s" % pair)
         exit(-1)
