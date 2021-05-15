@@ -1,0 +1,6 @@
+1. Improve ExchangeRate s.t. it can handle multiple types of exchanges, right now it could handle EURO->SEK or USD->SEK but not both.
+1. Create web UI
+1. Add support for staking?
+1. Add support for creating a CSV with intermediate calculations. This could be useful if the tax office wants to verify it (I'm currently waiting to see if they do, in which case I will ask them what they want)
+1. Learn the actual names of crypto stuff and tax stuff, and use it to improve variable names
+1. Isolate classes more
